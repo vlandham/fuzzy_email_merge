@@ -1,4 +1,4 @@
 name	email
 "simpson, homer"	homer@email.com
-"simpson, Marge"	marge@email.com
+"simpson, Marge E"	marge@email.com
 "smithers, Will"	will@email.com

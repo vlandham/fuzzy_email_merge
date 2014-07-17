@@ -1,0 +1,6 @@
+name,match_name,email
+"simpson, homer","simpson, homer",homer@email.com
+simpson marge,"simpson, Marge E",marge@email.com
+"smithers, bill","smithers, Will",will@email.com
+"smits, will",none,none
+"carl, brattla",none,none

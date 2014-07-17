@@ -4,8 +4,8 @@ require 'csv'
 require 'fuzzy_match'
 require 'ostruct'
 
-email_filename = "emails.txt"
-user_filename = "users.txt"
+email_filename = "employee_emails.txt"
+user_filename = "employee_names.txt"
 
 output_filename = "joined.txt"
 
@@ -28,17 +28,19 @@ def get_users filename
 end
 
 @found = {}
+@match_counts = Hash.new(0)
 @dup_count = 0
 def get_match name, matcher
   match = matcher.find(name, {:must_match_at_least_one_word => true})
 
   if match
     if !@found.keys.include?(match)
-      @found[match] = name
+      @found[match] = []
+      @found[match] << name
     else
       puts "ERROR - already used [#{match.name}] for [#{@found[match]}] not [#{name}]"
+      @found[match] << name
       @dup_count += 1
-      match = nil
     end
   end
   match
@@ -51,16 +53,29 @@ out = []
 @missing_count = 0
 @total_count = 0
 @found_count = 0
+matches = []
 users.each do |user|
-  @total_count += 1
-  match = get_match(user.name, matcher)
+  matches << get_match(user.name, matcher)
+end
+
+users.each_with_index do |user, index|
+  match = matches[index]
+  match_names = []
   if match
-    out << [user.name, match.name, match.email]
+    match_names = @found[match]
+  end
+
+  if match
+    out << [user.person_id, user.name, match.name, match.email, match_names.length]
     @found_count += 1
   else
-    out << [user.name, 'none', 'none']
+    out << [user.person_id, user.name, 'none', 'none', match_names.length]
     @missing_count += 1
   end
+end
+
+users.each do |user|
+  @total_count += 1
 end
 
 puts "#{@dup_count} dups found"
@@ -68,8 +83,8 @@ puts "#{@missing_count} missing - #{(@missing_count.to_f / @total_count.to_f).ro
 puts "#{@found_count} found - #{(@found_count.to_f / @total_count.to_f).round(2)}"
 puts "#{@total_count} total"
 
-CSV.open(output_filename, "wb") do |csv|
-  csv << ["name", "match_name", "email"]
+CSV.open(output_filename, "wb", { :col_sep => "\t" }) do |csv|
+  csv << ["person_id", "name", "match_name", "email", "match_count"]
   out.each do |o|
     csv << o
   end
